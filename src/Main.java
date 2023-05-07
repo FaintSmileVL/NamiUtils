@@ -1,8 +1,13 @@
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author ${USER}
@@ -11,6 +16,7 @@ import java.util.Random;
  */
 public class Main {
     public static void main(String[] args) {
+        /* STEP1
         String path = "C:\\Assembla\\NamiUtils\\resources";
 
         File clientPacketsSalvation = new File(path.toString() + "/clientpackets/salvation");
@@ -25,6 +31,13 @@ public class Main {
 
         writeToFile(serverPacketsHighFiveEnumList, "EServerPackets");
         writeToFile(serverPacketsSalvationEnumList, "EServerPacketsSalvation");
+        */
+
+        /* STEP2 */
+        String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets\\gameserver";
+        File packetSenders = new File(path.toString());
+        movePacketSendersToNewStandard(packetSenders);
+
     }
 
     public static LinkedList<Pair> collectToList(File dir) {
@@ -177,6 +190,78 @@ public class Main {
             writer.flush();
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
+        }
+    }
+
+    public static void movePacketSendersToNewStandard(File dir){
+        if(dir.isDirectory()) {
+            for (File item : dir.listFiles()) {
+                if (item.isDirectory())
+                {
+                    //копаем дальше в директорию
+                    movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
+                } else {
+                    Path path = FileSystems.getDefault().getPath(item.getAbsolutePath());
+                    Charset charset = StandardCharsets.UTF_8;
+
+                    String content = "";
+
+                    try {
+                        content = new String(Files.readAllBytes(path), charset);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    String requestPatternException = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\)(, new .*)\\);";
+                    Pattern pExcept = Pattern.compile(requestPatternException);
+                    Matcher matcherExcept = pExcept.matcher(content);
+
+                    //несколько пакетов
+                    if (matcherExcept.find()) {
+                        continue;
+                    }
+
+                    String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    Pattern p = Pattern.compile(requestPattern);
+                    Matcher matcher = p.matcher(content);
+
+                    //content = " sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED));";
+                    //Matcher matcher = p.matcher(content);
+
+                    if (matcher.find()) {
+                        int start = 0;
+
+                        while (matcher.find(start)) {
+                            String entity = matcher.group(1);
+                            String packet = matcher.group(2);
+                            String args = matcher.group(3);
+
+                            String entity_new = entity == "" ? "this, " : matcher.group(1) + ", ";
+                            String args_new = args;
+                            String packet_new = packet + ".class";
+
+                            //если аргументы не пустые
+                            if (args.indexOf(")") != 0){
+                                packet_new = packet_new + ", ";
+                            }
+
+                            String result1 = matcher.group();
+                            String result = matcher.group().replace("new " + packet, "NetworkPacketController.getInstance().getServerPacket");
+                            result = result.replace(args, entity_new + packet_new + args_new);
+
+                            content = content.replace(matcher.group(), result);
+                            start = matcher.end(3); //следующий матч после кэпчур группы 3
+                        }
+                        //System.out.println(path);
+
+                        try {
+                            Files.write(path, content.getBytes(charset));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
         }
     }
 }
