@@ -223,13 +223,18 @@ public class Main {
 
                     String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
-                    //content = "player.sendPacket(new ExBrPremiumState(player, bonus > 1 ? 1 : 0));";
+                    //content = "player.sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED, player));";
                     Matcher matcher = p.matcher(content);
 
                     //content = " sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED));";
                     //Matcher matcher = p.matcher(content);
 
-
+                    //общение гс и логин сервера
+                    if (matcher.find()){
+                        if (matcher.group().contains("LSConnection.getInstance")){
+                            continue;
+                        }
+                    }
 
                     if (matcher.find()) {
                         int start = 0;
@@ -260,22 +265,18 @@ public class Main {
                             //content = content.replace(matcher.group(), result);
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
                             if (matcher.group().contains("SystemMessage")){
-                                //System.out.println(path);
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
                             }
-                            //System.out.println(path);
                         }
-
 
                         try {
                             Files.write(path, content.getBytes(charset));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-
                     }
                 }
             }
@@ -315,6 +316,12 @@ public class Main {
                     //content = "activeChar.sendPacket(new SystemMessage(SystemMessage.S1_IS_NOT_ON_YOUR_FRIEND_LIST).addString(name), pook);";
                     Matcher matcher = p.matcher(content);
 
+                    //общение гс и логин сервера
+                    if (matcher.find()){
+                        if (matcher.group().contains("LSConnection.getInstance")){
+                            continue;
+                        }
+                    }
 
                     if (matcher.find()) {
                         int start = 0;
@@ -345,7 +352,6 @@ public class Main {
                             //content = content.replace(matcher.group(), result);
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
                             if (matcher.group().contains("SystemMessage")){
-                                //System.out.println(path);
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
