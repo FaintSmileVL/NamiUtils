@@ -223,11 +223,13 @@ public class Main {
 
                     String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
-                    //content = "activeChar.sendPacket(new SystemMessage(SystemMessage.S1_IS_NOT_ON_YOUR_FRIEND_LIST).addString(name), pook);";
+                    //content = "player.sendPacket(new ExBrPremiumState(player, bonus > 1 ? 1 : 0));";
                     Matcher matcher = p.matcher(content);
 
                     //content = " sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED));";
                     //Matcher matcher = p.matcher(content);
+
+
 
                     if (matcher.find()) {
                         int start = 0;
@@ -247,7 +249,7 @@ public class Main {
                             }
 
                             String result1 = matcher.group();
-                            String resultOrdinary = matcher.group().replace(invoker, "NetworkPacketController.getInstance()");
+                            String resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
                             resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
@@ -264,13 +266,16 @@ public class Main {
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
                             }
+                            //System.out.println(path);
                         }
+
 
                         try {
                             Files.write(path, content.getBytes(charset));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+
                     }
                 }
             }
@@ -329,7 +334,7 @@ public class Main {
                             }
 
                             String result1 = matcher.group();
-                            String resultOrdinary = matcher.group().replace(invoker, "NetworkPacketController.getInstance()");
+                            String resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
                             resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
