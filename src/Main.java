@@ -263,13 +263,15 @@ public class Main {
                             resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);//+ packet_new + args_new);
 
                             //content = content.replace(matcher.group(), result);
-                            start = matcher.end(3); //следующий матч после кэпчур группы 3
+
                             if (matcher.group().contains("SystemMessage")){
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
                             }
+
+                            start = matcher.end(3); //следующий матч после кэпчур группы 3
                         }
 
                         try {
@@ -350,13 +352,15 @@ public class Main {
                             resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);//+ packet_new + args_new);
 
                             //content = content.replace(matcher.group(), result);
-                            start = matcher.end(3); //следующий матч после кэпчур группы 3
+
                             if (matcher.group().contains("SystemMessage")){
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
                             }
+
+                            start = matcher.end(3); //следующий матч после кэпчур группы 3
                         }
 
                         try {
