@@ -310,8 +310,6 @@ public class Main {
                     //content = "activeChar.sendPacket(new SystemMessage(SystemMessage.S1_IS_NOT_ON_YOUR_FRIEND_LIST).addString(name), pook);";
                     Matcher matcher = p.matcher(content);
 
-                    //content = " sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED));";
-                    //Matcher matcher = p.matcher(content);
 
                     if (matcher.find()) {
                         int start = 0;
