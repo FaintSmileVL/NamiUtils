@@ -232,11 +232,11 @@ public class Main {
                         int start = 0;
 
                         while (matcher.find(start)) {
-                            String entity = matcher.group(1);
+                            String invoker = matcher.group(1);
                             String packet = matcher.group(2);
                             String args = matcher.group(3);
 
-                            String entity_new = entity == "" ? "this, " : matcher.group(1) + ", ";
+                            String invoker_new = invoker == "" ? "this, " : matcher.group(1) + ", ";
                             String args_new = args;
                             String packet_new = packet + ".class";
 
@@ -246,13 +246,19 @@ public class Main {
                             }
 
                             String result1 = matcher.group();
+                            String result2 = matcher.group().replace(invoker, "NetworkPacketController.getInstance()");
+                            result2 = result2.replace("new " + packet + "(", invoker_new);
+                            result2 = result2.replace(args, packet_new + args_new);
+                            result2 = result2.replace("));", ");");
+
                             String result = matcher.group().replace("new " + packet, "NetworkPacketController.getInstance().getServerPacket");
-                            result = result.replace(args, entity_new + packet_new + args_new);
+                            result = result.replace(args, invoker_new + packet_new + args_new);
 
                             content = content.replace(matcher.group(), result);
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
+                            System.out.println(path);
                         }
-                        //System.out.println(path);
+                        System.out.println(path);
 
                         try {
                             Files.write(path, content.getBytes(charset));
