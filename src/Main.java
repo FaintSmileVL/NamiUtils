@@ -221,6 +221,16 @@ public class Main {
                         continue;
                     }
 
+                    requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    pExcept = Pattern.compile(requestPatternException);
+                    matcherExcept = pExcept.matcher(content);
+
+                    //общение гс и логин сервера
+                    if (matcherExcept.find()) {
+                        continue;
+                    }
+
+
                     String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
                     //content = "player.sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED, player));";
@@ -309,6 +319,15 @@ public class Main {
                     Matcher matcherExcept = pExcept.matcher(content);
 
                     //несколько пакетов
+                    if (matcherExcept.find()) {
+                        continue;
+                    }
+
+                    requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\w*).broadcastPacket\\(new (\\w*)\\((.*)\\);";
+                    pExcept = Pattern.compile(requestPatternException);
+                    matcherExcept = pExcept.matcher(content);
+
+                    //общение гс и логин сервера
                     if (matcherExcept.find()) {
                         continue;
                     }
