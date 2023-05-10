@@ -199,8 +199,15 @@ public class Main {
                 if (item.isDirectory())
                 {
                     //копаем дальше в директорию
+                    if (item.getAbsolutePath().contains("loginservercon"))
+                        continue;
                     movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
                 } else {
+
+                    if (item.getName().contains(".htm")) {
+                        continue;
+                    }
+
                     Path path = FileSystems.getDefault().getPath(item.getAbsolutePath());
                     Charset charset = StandardCharsets.UTF_8;
 
@@ -236,18 +243,16 @@ public class Main {
                     //content = "player.sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED, player));";
                     Matcher matcher = p.matcher(content);
 
-                    //content = " sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED));";
+                    //content = " sendPacket(new SystemMessage(SystemMessage.YOU_COUNTERED_C1S_ATTACK, poop).addName(attacker));";
                     //Matcher matcher = p.matcher(content);
-
-                    //общение гс и логин сервера
-                    if (matcher.find()){
-                        if (matcher.group().contains("LSConnection.getInstance")){
-                            continue;
-                        }
-                    }
 
                     if (matcher.find()) {
                         int start = 0;
+
+                        //общение гс и логин сервера
+                        if (matcher.group().contains("LSConnection.getInstance")){
+                            continue;
+                        }
 
                         while (matcher.find(start)) {
                             String invoker = matcher.group(1);
@@ -269,12 +274,27 @@ public class Main {
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
 
-                            String resultSystemMessage = matcher.group().replace("new " + packet, "NetworkPacketController.getInstance().getSystemMessage");
-                            resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);//+ packet_new + args_new);
-
-                            //content = content.replace(matcher.group(), result);
-
                             if (matcher.group().contains("SystemMessage")){
+                                String pattern_system_message = "SystemMessage\\.(\\w*)";
+                                Pattern system_message_pattern = Pattern.compile(pattern_system_message);
+                                String s = matcher.group();
+                                Matcher matcher_system_message = system_message_pattern.matcher(matcher.group());
+
+                                String g = "";
+                                if (matcher_system_message.find())
+                                {
+                                    g = matcher_system_message.group();
+                                }
+
+                                String resultSystemMessage = matcher.group().replace("new " + packet, "ESystemMessage");
+                                resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);
+
+                                if (!g.equals("")){
+                                    String system_message_string = matcher_system_message.group(1);
+                                    resultSystemMessage = resultSystemMessage.replace(", " + matcher_system_message.group(), "");
+                                    resultSystemMessage = resultSystemMessage.replace("ESystemMessage", "ESystemMessage." + system_message_string + ".create");
+                                }
+
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
@@ -284,11 +304,14 @@ public class Main {
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
                         }
 
+
                         try {
                             Files.write(path, content.getBytes(charset));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+
+
                     }
                 }
             }
@@ -301,8 +324,14 @@ public class Main {
                 if (item.isDirectory())
                 {
                     //копаем дальше в директорию
+                    if (item.getAbsolutePath().contains("loginservercon"))
+                        continue;
                     movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
                 } else {
+                    if (item.getName().contains(".htm")) {
+                        continue;
+                    }
+                    
                     Path path = FileSystems.getDefault().getPath(item.getAbsolutePath());
                     Charset charset = StandardCharsets.UTF_8;
 
@@ -337,15 +366,13 @@ public class Main {
                     //content = "activeChar.sendPacket(new SystemMessage(SystemMessage.S1_IS_NOT_ON_YOUR_FRIEND_LIST).addString(name), pook);";
                     Matcher matcher = p.matcher(content);
 
-                    //общение гс и логин сервера
-                    if (matcher.find()){
+                    if (matcher.find()) {
+                        int start = 0;
+
+                        //общение гс и логин сервера
                         if (matcher.group().contains("LSConnection.getInstance")){
                             continue;
                         }
-                    }
-
-                    if (matcher.find()) {
-                        int start = 0;
 
                         while (matcher.find(start)) {
                             String invoker = matcher.group(1);
@@ -367,12 +394,27 @@ public class Main {
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
 
-                            String resultSystemMessage = matcher.group().replace("new " + packet, "NetworkPacketController.getInstance().getSystemMessage");
-                            resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);//+ packet_new + args_new);
-
-                            //content = content.replace(matcher.group(), result);
-
                             if (matcher.group().contains("SystemMessage")){
+                                String pattern_system_message = "SystemMessage\\.(\\w*)";
+                                Pattern system_message_pattern = Pattern.compile(pattern_system_message);
+                                String s = matcher.group();
+                                Matcher matcher_system_message = system_message_pattern.matcher(matcher.group());
+
+                                String g = "";
+                                if (matcher_system_message.find())
+                                {
+                                    g = matcher_system_message.group();
+                                }
+
+                                String resultSystemMessage = matcher.group().replace("new " + packet, "ESystemMessage");
+                                resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);
+
+                                if (!g.equals("")){
+                                    String system_message_string = matcher_system_message.group(1);
+                                    resultSystemMessage = resultSystemMessage.replace(", " + matcher_system_message.group(), "");
+                                    resultSystemMessage = resultSystemMessage.replace("ESystemMessage", "ESystemMessage." + system_message_string + ".create");
+                                }
+
                                 content = content.replace(matcher.group(), resultSystemMessage);
                             }
                             else{
@@ -382,11 +424,13 @@ public class Main {
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
                         }
 
+
                         try {
                             Files.write(path, content.getBytes(charset));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+
                     }
                 }
             }
