@@ -36,8 +36,10 @@ public class Main {
         /* STEP2 */
         String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets\\gameserver";
         File packetSenders = new File(path.toString());
+        File packetSenders2 = new File(path.toString());
+
         movePacketSendersToNewStandard(packetSenders);
-        movePacketBroadcastersToNewStandard(packetSenders);
+        movePacketBroadcastersToNewStandard(packetSenders2);
     }
 
     public static LinkedList<Pair> collectToList(File dir) {
@@ -240,7 +242,8 @@ public class Main {
 
                     String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
-                    //content = "player.sendPacket(new SystemMessage(SystemMessage.C1S_ATTACK_FAILED, player));";
+                    //content = "if(isPlayer())\n" +
+                    //        "      sendPacket(new SetupGauge(getObjectId(), SetupGauge.BLUE, skillTime, skillTime));";
                     Matcher matcher = p.matcher(content);
 
                     //content = " sendPacket(new SystemMessage(SystemMessage.YOU_COUNTERED_C1S_ATTACK, poop).addName(attacker));";
@@ -269,7 +272,14 @@ public class Main {
                             }
 
                             String result1 = matcher.group();
-                            String resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
+                            String resultOrdinary = "";
+                            if (invoker.equals("")){
+                                resultOrdinary = matcher.group().replaceFirst("sendPacket", "NetworkPacketController.getInstance().sendPacket");
+                            }
+                            else{
+                                resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
+                            }
+
                             resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
@@ -312,6 +322,7 @@ public class Main {
                         }
 
 
+
                     }
                 }
             }
@@ -326,8 +337,10 @@ public class Main {
                     //копаем дальше в директорию
                     if (item.getAbsolutePath().contains("loginservercon"))
                         continue;
-                    movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
+
+                    movePacketBroadcastersToNewStandard(new File(dir + "/" + item.getName()));
                 } else {
+
                     if (item.getName().contains(".htm")) {
                         continue;
                     }
@@ -363,7 +376,7 @@ public class Main {
 
                     String requestPattern = "(\\w*).broadcastPacket\\(new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
-                    //content = "activeChar.sendPacket(new SystemMessage(SystemMessage.S1_IS_NOT_ON_YOUR_FRIEND_LIST).addString(name), pook);";
+                    //content = " actor.broadcastPacket(new CharMoveToLocation(actor.getObjectId(), actor.getLoc(), actor.getLoc()));";
                     Matcher matcher = p.matcher(content);
 
                     if (matcher.find()) {
@@ -389,7 +402,15 @@ public class Main {
                             }
 
                             String result1 = matcher.group();
-                            String resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
+                            String resultOrdinary = "";
+
+                            if (invoker.equals("")){
+                                resultOrdinary = matcher.group().replaceFirst("broadcastPacket", "NetworkPacketController.getInstance().broadcastPacket");
+                            }
+                            else{
+                                resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
+                            }
+
                             resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
                             resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
                             resultOrdinary = resultOrdinary.replace("));", ");");
@@ -423,6 +444,7 @@ public class Main {
 
                             start = matcher.end(3); //следующий матч после кэпчур группы 3
                         }
+
 
 
                         try {
