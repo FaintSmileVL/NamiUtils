@@ -35,12 +35,16 @@ public class Main {
 */
 
         /* STEP2 */
-        String path = "C:\\Assembla\\NamiUtils\\resources\\src";
+        //String path = "C:\\Assembla\\NamiUtils\\resources\\src";
+        //ПОМЕНЯТЬ ДИРЕКТОРИИ НА ХОДУ, ПРОКИДЫВАЮТСЯ ВНУТРЬ
+        String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets";
+        String innerPath = "\\gameserver";
+        path = path + innerPath;
         File packetSenders = new File(path.toString());
         File packetSenders2 = new File(path.toString());
 
-        movePacketSendersToNewStandard(packetSenders);
-        movePacketBroadcastersToNewStandard(packetSenders2);
+        movePacketSendersToNewStandard(packetSenders, "\\result\\EXCEPTIONS\\SENDERS", innerPath);
+        movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath);
     }
 
     public static LinkedList<Pair> collectToList(File dir) {
@@ -196,7 +200,7 @@ public class Main {
         }
     }
 
-    public static void movePacketSendersToNewStandard(File dir){
+    public static void movePacketSendersToNewStandard(File dir, String exceptionPath, String innerPath){
         if(dir.isDirectory()) {
             for (File item : dir.listFiles()) {
                 if (item.isDirectory())
@@ -204,7 +208,7 @@ public class Main {
                     //копаем дальше в директорию
                     if (item.getAbsolutePath().contains("loginservercon"))
                         continue;
-                    movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
+                    movePacketSendersToNewStandard(new File(dir + "/" + item.getName()), exceptionPath, innerPath);
                 } else {
 
                     if (item.getName().contains(".htm")) {
@@ -222,46 +226,50 @@ public class Main {
                         throw new RuntimeException(e);
                     }
 
-                    String requestPatternException = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\)(, new .*)\\);";
+                    String requestPatternException = "(\\S*).sendPacket\\(new (\\w*)\\((.*)\\)(, new .*)\\);";
                     Pattern pExcept = Pattern.compile(requestPatternException);
                     Matcher matcherExcept = pExcept.matcher(content);
 
                     //несколько пакетов
                     if (matcherExcept.find()) {
+                        writeExceptionFile(item, content, charset, exceptionPath, innerPath);
                         continue;
                     }
 
-                    requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\S*).sendPacket\\(new (\\w*)\\((.*)\\);";
                     pExcept = Pattern.compile(requestPatternException);
                     matcherExcept = pExcept.matcher(content);
 
                     //общение гс и логин сервера
                     if (matcherExcept.find()) {
+                        writeExceptionFile(item, content, charset, exceptionPath, innerPath);
                         continue;
                     }
+                    //String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    //String requestPattern = "(\\S*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    //String requestPattern = "(\\S*).sendPacket\\(\\S*new (\\w*)\\((.*)\\);";
 
-
-                    String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    String requestPattern = "(\\S*).sendPacket\\((\\S*)new (\\w*)\\((.*)\\);";
                     Pattern p = Pattern.compile(requestPattern);
-                    //content = "if(isPlayer())\n" +
+                    //content = " actor.sendPacket((new SystemMessage(3151)).addName(target));";
+                    //        "      sendPacket(new SetupGauge(getObjectId(), SetupGauge.BLUE, skillTime, skillTime));";
                     //        "      sendPacket(new SetupGauge(getObjectId(), SetupGauge.BLUE, skillTime, skillTime));";
                     Matcher matcher = p.matcher(content);
-
-                    //content = " sendPacket(new SystemMessage(SystemMessage.YOU_COUNTERED_C1S_ATTACK, poop).addName(attacker));";
-                    //Matcher matcher = p.matcher(content);
 
                     if (matcher.find()) {
                         int start = 0;
 
                         //общение гс и логин сервера
                         if (matcher.group().contains("LSConnection.getInstance")){
+                            writeExceptionFile(item, content, charset, exceptionPath, innerPath);
                             continue;
                         }
 
                         while (matcher.find(start)) {
                             String invoker = matcher.group(1);
-                            String packet = matcher.group(2);
-                            String args = matcher.group(3);
+                            String gavno = matcher.group(2);
+                            String packet = matcher.group(3);
+                            String args = matcher.group(4);
 
                             String invoker_new = invoker == "" ? "this, " : matcher.group(1) + ", ";
                             String args_new = args;
@@ -274,16 +282,30 @@ public class Main {
 
                             String result1 = matcher.group();
                             String resultOrdinary = "";
+
                             if (invoker.equals("")){
                                 resultOrdinary = matcher.group().replaceFirst("sendPacket", "NetworkPacketController.getInstance().sendPacket");
                             }
                             else{
-                                resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
+                                //Pattern.quote - использовать строку в качестве регулярки буквально(автоматически добавятся escape-символы)
+                                resultOrdinary = matcher.group().replaceFirst(Pattern.quote(invoker), "NetworkPacketController.getInstance()");
                             }
 
-                            resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
-                            resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
-                            resultOrdinary = resultOrdinary.replace("));", ");");
+                            if (args.indexOf(")") == 0){
+                                resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new + packet_new);
+                            }
+                            else {
+                                resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
+                                resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
+                            }
+
+                            if (args.endsWith(")") && gavno.endsWith("(")){
+                                //do nothing, потому что либо касты, либо какие другие
+                            }
+                            else{
+                                //см выше, где new ( убирается
+                                resultOrdinary = resultOrdinary.replace("));", ");");
+                            }
 
                             if (matcher.group().contains("SystemMessage")){
                                 String pattern_system_message = "SystemMessage\\.(\\w*)";
@@ -316,7 +338,7 @@ public class Main {
                         }
 
                         try {
-                            Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace("\\src", "\\result"));
+                            Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, "\\result"));
                             if (!Files.exists(path2)) {
                                 createDir(path2);
                             }
@@ -324,138 +346,157 @@ public class Main {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-
                     }
                 }
             }
         }
     }
 
-    public static void movePacketBroadcastersToNewStandard(File dir) {
-        if (dir.isDirectory()) {
+    public static void movePacketBroadcastersToNewStandard(File dir, String exceptionPath, String innerPath) {
+        if(dir.isDirectory()) {
             for (File item : dir.listFiles()) {
-                if (item.isDirectory()) {
+                if (item.isDirectory())
+                {
                     //копаем дальше в директорию
                     if (item.getAbsolutePath().contains("loginservercon"))
                         continue;
-
-                    movePacketBroadcastersToNewStandard(new File(dir + "/" + item.getName()));
-                    movePacketSendersToNewStandard(new File(dir + "/" + item.getName()));
+                    movePacketBroadcastersToNewStandard(new File(dir + "/" + item.getName()), exceptionPath, innerPath);
                 } else {
 
                     if (item.getName().contains(".htm")) {
-                        if (!item.getName().endsWith(".java")) {
-                            continue;
-                        }
-                        Path path = FileSystems.getDefault().getPath(item.getAbsolutePath());
-                        if (path.toString().contains("loginservercon")) {
-                            continue;
-                        }
-                        Charset charset = StandardCharsets.UTF_8;
+                        continue;
+                    }
 
-                        String content = "";
+                    Path path = FileSystems.getDefault().getPath(item.getAbsolutePath());
+                    Charset charset = StandardCharsets.UTF_8;
 
-                        try {
-                            content = new String(Files.readAllBytes(path), charset);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                    String content = "";
 
-                        String requestPatternException = "(\\w*).broadcastPacket\\(new (\\w*)\\((.*)\\)(, new .*)\\);";
-                        Pattern pExcept = Pattern.compile(requestPatternException);
-                        Matcher matcherExcept = pExcept.matcher(content);
+                    try {
+                        content = new String(Files.readAllBytes(path), charset);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                        //несколько пакетов
-                        if (matcherExcept.find()) {
-                            continue;
-                        }
+                    String requestPatternException = "(\\S*).broadcastPacket\\(new (\\w*)\\((.*)\\)(, new .*)\\);";
+                    Pattern pExcept = Pattern.compile(requestPatternException);
+                    Matcher matcherExcept = pExcept.matcher(content);
 
-                        requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\w*).broadcastPacket\\(new (\\w*)\\((.*)\\);";
-                        pExcept = Pattern.compile(requestPatternException);
-                        matcherExcept = pExcept.matcher(content);
+                    //несколько пакетов
+                    if (matcherExcept.find()) {
+                        writeExceptionFile(item, content, charset, exceptionPath, innerPath);
+                        continue;
+                    }
+
+                    requestPatternException = "LSConnection\\.getInstance[^\\n]*(\\S*).broadcastPacket\\(new (\\w*)\\((.*)\\);";
+                    pExcept = Pattern.compile(requestPatternException);
+                    matcherExcept = pExcept.matcher(content);
+
+                    //общение гс и логин сервера
+                    if (matcherExcept.find()) {
+                        writeExceptionFile(item, content, charset, exceptionPath, innerPath);
+                        continue;
+                    }
+                    //String requestPattern = "(\\w*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    //String requestPattern = "(\\S*).sendPacket\\(new (\\w*)\\((.*)\\);";
+                    //String requestPattern = "(\\S*).sendPacket\\(\\S*new (\\w*)\\((.*)\\);";
+
+                    String requestPattern = "(\\S*).broadcastPacket\\((\\S*)new (\\w*)\\((.*)\\);";
+                    Pattern p = Pattern.compile(requestPattern);
+                    //content = " actor.sendPacket((new SystemMessage(3151)).addName(target));";
+                    //        "      sendPacket(new SetupGauge(getObjectId(), SetupGauge.BLUE, skillTime, skillTime));";
+                    //        "      sendPacket(new SetupGauge(getObjectId(), SetupGauge.BLUE, skillTime, skillTime));";
+                    Matcher matcher = p.matcher(content);
+
+                    if (matcher.find()) {
+                        int start = 0;
 
                         //общение гс и логин сервера
-                        if (matcherExcept.find()) {
+                        if (matcher.group().contains("LSConnection.getInstance")){
+                            writeExceptionFile(item, content, charset, exceptionPath, innerPath);
                             continue;
                         }
 
-                        String requestPattern = "(\\w*).broadcastPacket\\(new (\\w*)\\((.*)\\);";
-                        Pattern p = Pattern.compile(requestPattern);
-                        //content = " actor.broadcastPacket(new CharMoveToLocation(actor.getObjectId(), actor.getLoc(), actor.getLoc()));";
-                        Matcher matcher = p.matcher(content);
+                        while (matcher.find(start)) {
+                            String invoker = matcher.group(1);
+                            String gavno = matcher.group(2);
+                            String packet = matcher.group(3);
+                            String args = matcher.group(4);
 
-                        if (matcher.find()) {
-                            int start = 0;
+                            String invoker_new = invoker == "" ? "this, " : matcher.group(1) + ", ";
+                            String args_new = args;
+                            String packet_new = packet + ".class";
 
-                            //общение гс и логин сервера
-                            if (matcher.group().contains("LSConnection.getInstance")) {
-                                continue;
+                            //если аргументы не пустые
+                            if (args.indexOf(")") != 0){
+                                packet_new = packet_new + ", ";
                             }
 
-                            while (matcher.find(start)) {
-                                String invoker = matcher.group(1);
-                                String packet = matcher.group(2);
-                                String args = matcher.group(3);
+                            String result1 = matcher.group();
+                            String resultOrdinary = "";
 
-                                String invoker_new = invoker == "" ? "this, " : matcher.group(1) + ", ";
-                                String args_new = args;
-                                String packet_new = packet + ".class";
+                            if (invoker.equals("")){
+                                resultOrdinary = matcher.group().replaceFirst("broadcastPacket", "NetworkPacketController.getInstance().broadcastPacket");
+                            }
+                            else{
+                                //Pattern.quote - использовать строку в качестве регулярки буквально(автоматически добавятся escape-символы)
+                                resultOrdinary = matcher.group().replaceFirst(Pattern.quote(invoker), "NetworkPacketController.getInstance()");
+                            }
 
-                                //если аргументы не пустые
-                                if (args.indexOf(")") != 0) {
-                                    packet_new = packet_new + ", ";
-                                }
-
-                                String result1 = matcher.group();
-                                String resultOrdinary = "";
-
-                                if (invoker.equals("")) {
-                                    resultOrdinary = matcher.group().replaceFirst("broadcastPacket", "NetworkPacketController.getInstance().broadcastPacket");
-                                } else {
-                                    resultOrdinary = matcher.group().replaceFirst(invoker, "NetworkPacketController.getInstance()");
-                                }
-
+                            if (args.indexOf(")") == 0){
+                                resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new + packet_new);
+                            }
+                            else {
                                 resultOrdinary = resultOrdinary.replace("new " + packet + "(", invoker_new);
                                 resultOrdinary = resultOrdinary.replace(args, packet_new + args_new);
+                            }
+
+                            if (args.endsWith(")") && gavno.endsWith("(")){
+                                //do nothing, потому что либо касты, либо какие другие
+                            }
+                            else{
+                                //см выше, где new ( убирается
                                 resultOrdinary = resultOrdinary.replace("));", ");");
-
-                                if (matcher.group().contains("SystemMessage")) {
-                                    String pattern_system_message = "SystemMessage\\.(\\w*)";
-                                    Pattern system_message_pattern = Pattern.compile(pattern_system_message);
-                                    String s = matcher.group();
-                                    Matcher matcher_system_message = system_message_pattern.matcher(matcher.group());
-
-                                    String g = "";
-                                    if (matcher_system_message.find()) {
-                                        g = matcher_system_message.group();
-                                    }
-
-                                    String resultSystemMessage = matcher.group().replace("new " + packet, "ESystemMessage");
-                                    resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);
-
-                                    if (!g.equals("")) {
-                                        String system_message_string = matcher_system_message.group(1);
-                                        resultSystemMessage = resultSystemMessage.replace(", " + matcher_system_message.group(), "");
-                                        resultSystemMessage = resultSystemMessage.replace("ESystemMessage", "ESystemMessage." + system_message_string + ".create");
-                                    }
-
-                                    content = content.replace(matcher.group(), resultSystemMessage);
-                                } else {
-                                    content = content.replace(matcher.group(), resultOrdinary);
-                                }
-
-                                start = matcher.end(3); //следующий матч после кэпчур группы 3
                             }
 
-                            try {
-                                Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace("\\src", "\\result"));
-                                if (!Files.exists(path2)) {
-                                    createDir(path2);
+                            if (matcher.group().contains("SystemMessage")){
+                                String pattern_system_message = "SystemMessage\\.(\\w*)";
+                                Pattern system_message_pattern = Pattern.compile(pattern_system_message);
+                                String s = matcher.group();
+                                Matcher matcher_system_message = system_message_pattern.matcher(matcher.group());
+
+                                String g = "";
+                                if (matcher_system_message.find())
+                                {
+                                    g = matcher_system_message.group();
                                 }
-                                Files.write(path2, content.getBytes(charset));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
+
+                                String resultSystemMessage = matcher.group().replace("new " + packet, "ESystemMessage");
+                                resultSystemMessage = resultSystemMessage.replace(args, invoker_new + args_new);
+
+                                if (!g.equals("")){
+                                    String system_message_string = matcher_system_message.group(1);
+                                    resultSystemMessage = resultSystemMessage.replace(", " + matcher_system_message.group(), "");
+                                    resultSystemMessage = resultSystemMessage.replace("ESystemMessage", "ESystemMessage." + system_message_string + ".create");
+                                }
+
+                                content = content.replace(matcher.group(), resultSystemMessage);
                             }
+                            else{
+                                content = content.replace(matcher.group(), resultOrdinary);
+                            }
+
+                            start = matcher.end(3); //следующий матч после кэпчур группы 3
+                        }
+
+                        try {
+                            Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, "\\result"));
+                            if (!Files.exists(path2)) {
+                                createDir(path2);
+                            }
+                            Files.write(path2, content.getBytes(charset));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 }
@@ -474,6 +515,18 @@ public class Main {
             } else {
                 Files.createFile(parent);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void writeExceptionFile(File item, String content, Charset charset, String newPath, String innerPath){
+        try {
+            Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, newPath));
+            if (!Files.exists(path2)) {
+                createDir(path2);
+            }
+            Files.write(path2, content.getBytes(charset));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
