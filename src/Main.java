@@ -307,7 +307,8 @@ public class Main {
                                 resultOrdinary = resultOrdinary.replace("));", ");");
                             }
 
-                            if (matcher.group().contains("SystemMessage")){
+                            if (matcher.group().contains("SystemMessage") || matcher.group().contains("getClient()")){
+                                /*
                                 String pattern_system_message = "SystemMessage\\.(\\w*)";
                                 Pattern system_message_pattern = Pattern.compile(pattern_system_message);
                                 String s = matcher.group();
@@ -329,6 +330,7 @@ public class Main {
                                 }
 
                                 content = content.replace(matcher.group(), resultSystemMessage);
+                                 */
                             }
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
@@ -459,7 +461,8 @@ public class Main {
                                 resultOrdinary = resultOrdinary.replace("));", ");");
                             }
 
-                            if (matcher.group().contains("SystemMessage")){
+                            if (matcher.group().contains("SystemMessage") || matcher.group().contains("getClient()")){
+                                /*
                                 String pattern_system_message = "SystemMessage\\.(\\w*)";
                                 Pattern system_message_pattern = Pattern.compile(pattern_system_message);
                                 String s = matcher.group();
@@ -481,6 +484,7 @@ public class Main {
                                 }
 
                                 content = content.replace(matcher.group(), resultSystemMessage);
+                                 */
                             }
                             else{
                                 content = content.replace(matcher.group(), resultOrdinary);
