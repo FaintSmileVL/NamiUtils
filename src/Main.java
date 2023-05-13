@@ -262,10 +262,10 @@ public class Main {
                             }
 
                             if(
-                            exceptionUnknown ||
-                            result.contains("LSConnection.getInstance") ||
-                            result.matches(".*sendPacket.*new.*,.*new.*")||
-                            result.contains("getClient()")
+                                    exceptionUnknown ||
+                                            result.contains("LSConnection.getInstance") ||
+                                            result.matches(".*sendPacket.*new.*,.*new.*")||
+                                            result.contains("getClient()")
                             ){
                                 writeException = true;
                                 start = matcher.end(4);
