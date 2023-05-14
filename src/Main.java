@@ -39,9 +39,11 @@ public class Main {
         path = path + innerPath;
         File packetSenders = new File(path.toString());
         File packetSenders2 = new File(path.toString());
+        File packetSenders3 = new File(path.toString());
 
-        SendPacketMaker.getInstance().movePacketSendersToNewStandard(packetSenders, "\\result\\EXCEPTIONS\\SENDERS", innerPath);
-        BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath);
+        SendPacketMaker.getInstance().movePacketSendersToNewStandard(packetSenders, "\\result\\EXCEPTIONS", innerPath);
+        BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS", innerPath);
+        BroadcastPacketMaker.getInstance().movePacketBroadcasters2ToNewStandard(packetSenders3, "\\result\\EXCEPTIONS", innerPath);
     }
 
 
