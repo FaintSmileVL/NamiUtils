@@ -69,6 +69,7 @@ public class BroadcastPacketMaker implements IMaker {
 
                     if (matcher.find()) {
                         int start = 0;
+                        String exceptionContent = "";
 
                         while (matcher.find(start)) {
                             String result = matcher.group();
@@ -99,6 +100,7 @@ public class BroadcastPacketMaker implements IMaker {
                                     result.contains("getClient()")) {
                                 writeException = true;
                                 start = matcher.end(4);
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 continue;
                             }
 
@@ -145,6 +147,7 @@ public class BroadcastPacketMaker implements IMaker {
 
                             if (insideException) {
                                 start = matcher.end(4); //следующий матч после кэпчур группы 4
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 continue;
                             }
 
@@ -175,7 +178,7 @@ public class BroadcastPacketMaker implements IMaker {
                         }
 
                         if (writeException) {
-                            writeExceptionFile(item, content, charset, exceptionPath, innerPath);
+                            writeExceptionFile(exceptionContent, charset, exceptionPath);
                         } else {
                             writeNormalFile(item, content, charset, "\\result", innerPath);
                         }
@@ -202,6 +205,7 @@ public class BroadcastPacketMaker implements IMaker {
                     Charset charset = StandardCharsets.UTF_8;
 
                     String content = "";
+
 
                     boolean writeException = false;
 
@@ -230,6 +234,7 @@ public class BroadcastPacketMaker implements IMaker {
 
                     if (matcher.find()) {
                         int start = 0;
+                        String exceptionContent = "";
 
                         while (matcher.find(start)) {
                             String result = matcher.group();
@@ -259,6 +264,7 @@ public class BroadcastPacketMaker implements IMaker {
                                     result.matches(".*broadcastPacket2.*new.*,.*new.*") ||
                                     result.contains("getClient()")) {
                                 writeException = true;
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 start = matcher.end(4);
                                 continue;
                             }
@@ -306,6 +312,7 @@ public class BroadcastPacketMaker implements IMaker {
 
                             if (insideException) {
                                 start = matcher.end(4); //следующий матч после кэпчур группы 4
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 continue;
                             }
 
@@ -336,7 +343,7 @@ public class BroadcastPacketMaker implements IMaker {
                         }
 
                         if (writeException) {
-                            writeExceptionFile(item, content, charset, exceptionPath, innerPath);
+                            writeExceptionFile(exceptionContent, charset, exceptionPath);
                         } else {
                             writeNormalFile(item, content, charset, "\\result", innerPath);
                         }

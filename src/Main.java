@@ -1,6 +1,5 @@
 import makers.BroadcastPacketMaker;
 import makers.SendPacketMaker;
-
 import java.io.File;
 
 /**
@@ -27,7 +26,7 @@ public class Main {
         //String innerPath = "\\src";
         String innerPath = "\\gameserver";
         path = path + innerPath;
-        String exceptionsPath = "\\result\\EXCEPTIONS";
+        String exceptionsPath = path.replace(innerPath, "\\result\\EXCEPTIONS\\exceptions.txt");
 
         SendPacketMaker.getInstance().movePacketSendersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
         BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);

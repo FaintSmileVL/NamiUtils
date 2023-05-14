@@ -57,6 +57,7 @@ public class SendPacketMaker implements IMaker {
 
                     if (matcher.find()) {
                         int start = 0;
+                        String exceptionContent = "";
 
                         while (matcher.find(start)) {
                             String result = matcher.group();
@@ -64,6 +65,7 @@ public class SendPacketMaker implements IMaker {
                             String sendGavno = matcher.group(2);    //Касты и прочая шляпа идут на хуй
                             String packet = matcher.group(3);
                             String args = matcher.group(4);
+
 
                             String invoker_new = invoker == "" ? "this, " : matcher.group(1) + ", ";
                             String packet_new = packet + ".class";
@@ -88,6 +90,7 @@ public class SendPacketMaker implements IMaker {
                                             result.contains("getClient()")
                             ) {
                                 writeException = true;
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 start = matcher.end(4);
                                 continue;
                             }
@@ -134,6 +137,7 @@ public class SendPacketMaker implements IMaker {
                             }
 
                             if (insideException) {
+                                exceptionContent += "\n###################\nPATH: " + item.getAbsolutePath().replace(innerPath, "\\result") + "\n" + result + "\n###################";
                                 start = matcher.end(4); //следующий матч после кэпчур группы 4
                                 continue;
                             }
@@ -165,7 +169,7 @@ public class SendPacketMaker implements IMaker {
                         }
 
                         if (writeException) {
-                            writeExceptionFile(item, content, charset, exceptionPath, innerPath);
+                            writeExceptionFile(exceptionContent, charset, exceptionPath);
                         } else {
                             writeNormalFile(item, content, charset, "\\result", innerPath);
                         }

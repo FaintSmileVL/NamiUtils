@@ -3,10 +3,8 @@ package makers;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 
 /**
  * @author Nami
@@ -30,13 +28,25 @@ public interface IMaker {
         }
     }
 
-    default void writeExceptionFile(File item, String content, Charset charset, String newPath, String innerPath) {
+    default void writeExceptionFile(String content, Charset charset, String exceptionPath) {
         try {
-            Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, newPath));
+            Path path2 = FileSystems.getDefault().getPath(exceptionPath);
             if (!Files.exists(path2)) {
-                createDir(path2);
+                Path parentDir = Paths.get(path2.toUri()).getParent();
+                try {
+                    if (!Files.exists(parentDir)) {
+                        createDir(parentDir);
+                    }
+                    if (!path2.toString().endsWith(".txt")) {
+                        Files.createDirectory(path2);
+                    } else {
+                        Files.createFile(path2);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-            Files.write(path2, content.getBytes(charset));
+            Files.write(path2, content.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
