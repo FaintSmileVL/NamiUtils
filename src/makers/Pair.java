@@ -1,7 +1,9 @@
+package makers;
+
 /**
  * @author Nami
- * @date 04.05.2023
- * @time 18:09
+ * @date 14.05.2023
+ * @time 11:51
  */
 public class Pair {
     public int left;
