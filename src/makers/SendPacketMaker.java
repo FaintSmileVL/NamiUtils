@@ -170,9 +170,9 @@ public class SendPacketMaker implements IMaker {
 
                         if (writeException) {
                             writeExceptionFile(exceptionContent, charset, exceptionPath);
-                        } else {
-                            writeNormalFile(item, content, charset, "\\result", innerPath);
                         }
+                        writeNormalFile(item, content, charset, "\\result", innerPath);
+
                     }
                 }
             }
