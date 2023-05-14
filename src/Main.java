@@ -35,17 +35,19 @@ public class Main {
 */
 
         /* STEP2 */
-        //String path = "C:\\Assembla\\NamiUtils\\resources\\src";
+        String path = "C:\\Assembla\\NamiUtils\\resources";
         //ПОМЕНЯТЬ ДИРЕКТОРИИ НА ХОДУ, ПРОКИДЫВАЮТСЯ ВНУТРЬ
-        String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets";
-        String innerPath = "\\gameserver";
+        //String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets";
+        String innerPath = "\\src";
+        //String innerPath = "\\gameserver";
         path = path + innerPath;
-        String innerPath2 = "\\result";
+        String innerPath2 = "\\src";
+        //String innerPath2 = "\\result";
         File packetSenders = new File(path.toString());
         File packetSenders2 = new File(path.toString());
 
         movePacketSendersToNewStandard(packetSenders, "\\result\\EXCEPTIONS\\SENDERS", innerPath);
-        //movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath2);
+        movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath2);
     }
 
     public static LinkedList<Pair> collectToList(File dir) {
@@ -185,6 +187,7 @@ public class Main {
 
     /**
      * Writing ENUM
+     *
      * @param list
      * @param name
      */
@@ -201,18 +204,16 @@ public class Main {
         }
     }
 
-    public static void movePacketSendersToNewStandard(File dir, String exceptionPath, String innerPath){
-        if(dir.isDirectory()) {
+    public static void movePacketSendersToNewStandard(File dir, String exceptionPath, String innerPath) {
+        if (dir.isDirectory()) {
             for (File item : dir.listFiles()) {
-                if (item.isDirectory())
-                {
+                if (item.isDirectory()) {
                     //копаем дальше в директорию
                     if (item.getAbsolutePath().contains("loginservercon"))
                         continue;
                     movePacketSendersToNewStandard(new File(dir + "/" + item.getName()), exceptionPath, innerPath);
                 } else {
-
-                    if (item.getName().contains(".htm")) {
+                    if (!item.getName().contains(".java")) {
                         continue;
                     }
 
@@ -251,22 +252,21 @@ public class Main {
                             boolean gavnoCode = false;
                             boolean exceptionUnknown = false;
 
-                            if (sendGavno.equals("(")){
+                            if (sendGavno.equals("(")) {
                                 gavnoCode = true;
-                            }
-                            else {
+                            } else {
                                 //не обрабатываем
-                                if (sendGavno.contains("(")){
+                                if (sendGavno.contains("(")) {
                                     exceptionUnknown = true;
                                 }
                             }
 
-                            if(
+                            if (
                                     exceptionUnknown ||
                                             result.contains("LSConnection.getInstance") ||
-                                            result.matches(".*sendPacket.*new.*,.*new.*")||
+                                            result.matches(".*sendPacket.*new.*,.*new.*") ||
                                             result.contains("getClient()")
-                            ){
+                            ) {
                                 writeException = true;
                                 start = matcher.end(4);
                                 continue;
@@ -282,9 +282,9 @@ public class Main {
                             boolean insideException = false;
                             boolean packetArgsEnd = false;
 
-                            for (char ch: args.toCharArray()) {
+                            for (char ch : args.toCharArray()) {
 
-                                if (ch == '.' && countUnclosedBrackets == 0){
+                                if (ch == '.' && countUnclosedBrackets == 0) {
                                     if (!result.contains("SystemMessage")) {
                                         writeException = true;
                                     }
@@ -292,23 +292,22 @@ public class Main {
                                     continue;
                                 }
 
-                                if (ch == ',' && countUnclosedBrackets == 0){
+                                if (ch == ',' && countUnclosedBrackets == 0) {
                                     packetArgsEnd = true;
                                 }
 
-                                if (ch == '('){
+                                if (ch == '(') {
                                     countUnclosedBrackets += 1;
                                 }
 
-                                if (ch == ')'){
+                                if (ch == ')') {
                                     countUnclosedBrackets -= 1;
                                 }
 
 
-                                if (packetArgsEnd){
+                                if (packetArgsEnd) {
                                     nonPacketArgs += ch;
-                                }
-                                else{
+                                } else {
                                     packetArgs += ch;
                                 }
 
@@ -321,21 +320,21 @@ public class Main {
 
                             packetArgs = packetArgs.substring(0, packetArgs.length() - 1);
 
-                            if(gavnoCode){
+                            if (gavnoCode) {
                                 packetArgs = packetArgs.substring(0, packetArgs.length() - 1);
                             }
 
 
-                            if (!packetArgs.equals("")){
+                            if (!packetArgs.equals("")) {
                                 packet_new += ", ";
                             }
 
-                            if (!nonPacketArgs.equals("")){
+                            if (!nonPacketArgs.equals("")) {
                                 start = matcher.end(4);
                                 continue;
                             }
 
-                            if (result.contains("SystemMessage")){
+                            if (result.contains("SystemMessage")) {
                                 start = matcher.end(4); //следующий матч после кэпчур группы 4
                                 continue;
                             }
@@ -345,10 +344,9 @@ public class Main {
                             start = matcher.end(4); //следующий матч после кэпчур группы 4
                         }
 
-                        if (writeException){
+                        if (writeException) {
                             writeExceptionFile(item, content, charset, exceptionPath, innerPath);
-                        }
-                        else{
+                        } else {
                             writeNormalFile(item, content, charset, "\\result", innerPath);
                         }
                     }
@@ -357,18 +355,16 @@ public class Main {
         }
     }
 
-    public static void movePacketBroadcastersToNewStandard(File dir, String exceptionPath, String innerPath){
-        if(dir.isDirectory()) {
+    public static void movePacketBroadcastersToNewStandard(File dir, String exceptionPath, String innerPath) {
+        if (dir.isDirectory()) {
             for (File item : dir.listFiles()) {
-                if (item.isDirectory())
-                {
+                if (item.isDirectory()) {
                     //копаем дальше в директорию
                     if (item.getAbsolutePath().contains("loginservercon"))
                         continue;
                     movePacketBroadcastersToNewStandard(new File(dir + "/" + item.getName()), exceptionPath, innerPath);
                 } else {
-
-                    if (item.getName().contains(".htm")) {
+                    if (!item.getName().contains(".java")) {
                         continue;
                     }
 
@@ -407,22 +403,19 @@ public class Main {
                             boolean gavnoCode = false;
                             boolean exceptionUnknown = false;
 
-                            if (sendGavno.equals("(")){
+                            if (sendGavno.equals("(")) {
                                 gavnoCode = true;
-                            }
-                            else {
+                            } else {
                                 //не обрабатываем
-                                if (sendGavno.contains("(")){
+                                if (sendGavno.contains("(")) {
                                     exceptionUnknown = true;
                                 }
                             }
 
-                            if(
-                                    exceptionUnknown ||
-                                            result.contains("LSConnection.getInstance") ||
-                                            result.matches(".*broadcastPacket.*new.*,.*new.*")||
-                                            result.contains("getClient()")
-                            ){
+                            if (exceptionUnknown ||
+                                    result.contains("LSConnection.getInstance") ||
+                                    result.matches(".*broadcastPacket.*new.*,.*new.*") ||
+                                    result.contains("getClient()")) {
                                 writeException = true;
                                 start = matcher.end(4);
                                 continue;
@@ -438,9 +431,9 @@ public class Main {
                             boolean insideException = false;
                             boolean packetArgsEnd = false;
 
-                            for (char ch: args.toCharArray()) {
+                            for (char ch : args.toCharArray()) {
 
-                                if (ch == '.' && countUnclosedBrackets == 0){
+                                if (ch == '.' && countUnclosedBrackets == 0) {
                                     if (!result.contains("SystemMessage")) {
                                         writeException = true;
                                     }
@@ -448,23 +441,22 @@ public class Main {
                                     continue;
                                 }
 
-                                if (ch == ',' && countUnclosedBrackets == 0){
+                                if (ch == ',' && countUnclosedBrackets == 0) {
                                     packetArgsEnd = true;
                                 }
 
-                                if (ch == '('){
+                                if (ch == '(') {
                                     countUnclosedBrackets += 1;
                                 }
 
-                                if (ch == ')'){
+                                if (ch == ')') {
                                     countUnclosedBrackets -= 1;
                                 }
 
 
-                                if (packetArgsEnd){
+                                if (packetArgsEnd) {
                                     nonPacketArgs += ch;
-                                }
-                                else{
+                                } else {
                                     packetArgs += ch;
                                 }
 
@@ -477,21 +469,21 @@ public class Main {
 
                             packetArgs = packetArgs.substring(0, packetArgs.length() - 1);
 
-                            if(gavnoCode){
+                            if (gavnoCode) {
                                 packetArgs = packetArgs.substring(0, packetArgs.length() - 1);
                             }
 
 
-                            if (!packetArgs.equals("")){
+                            if (!packetArgs.equals("")) {
                                 packet_new += ", ";
                             }
 
-                            if (!nonPacketArgs.equals("")){
+                            if (!nonPacketArgs.equals("")) {
                                 start = matcher.end(4);
                                 continue;
                             }
 
-                            if (result.contains("SystemMessage")){
+                            if (result.contains("SystemMessage")) {
                                 start = matcher.end(4); //следующий матч после кэпчур группы 4
                                 continue;
                             }
@@ -501,10 +493,9 @@ public class Main {
                             start = matcher.end(4); //следующий матч после кэпчур группы 4
                         }
 
-                        if (writeException){
+                        if (writeException) {
                             writeExceptionFile(item, content, charset, exceptionPath, innerPath);
-                        }
-                        else{
+                        } else {
                             writeNormalFile(item, content, charset, "\\result", innerPath);
                         }
                     }
@@ -530,7 +521,7 @@ public class Main {
         }
     }
 
-    private static void writeExceptionFile(File item, String content, Charset charset, String newPath, String innerPath){
+    private static void writeExceptionFile(File item, String content, Charset charset, String newPath, String innerPath) {
         try {
             Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, newPath));
             if (!Files.exists(path2)) {
@@ -542,7 +533,7 @@ public class Main {
         }
     }
 
-    private static void writeNormalFile(File item, String content, Charset charset, String newPath, String innerPath){
+    private static void writeNormalFile(File item, String content, Charset charset, String newPath, String innerPath) {
         try {
             Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, newPath));
             if (!Files.exists(path2)) {
