@@ -43,7 +43,13 @@ public class BroadcastPacketMaker implements IMaker {
                     String content = "";
 
                     try {
-                        content = new String(Files.readAllBytes(path), charset);
+                        Path path2 = FileSystems.getDefault().getPath(item.getAbsolutePath().replace(innerPath, "\\result"));
+                        if (Files.exists(path2)) {
+                            content = new String(Files.readAllBytes(path2), charset);
+                        }
+                        else{
+                            content = new String(Files.readAllBytes(path), charset);
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }

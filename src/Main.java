@@ -31,19 +31,17 @@ public class Main {
 */
 
         /* STEP2 */
-        String path = "C:\\Assembla\\NamiUtils\\resources";
         //ПОМЕНЯТЬ ДИРЕКТОРИИ НА ХОДУ, ПРОКИДЫВАЮТСЯ ВНУТРЬ
-        //String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils\\packets";
-        String innerPath = "\\src";
-        //String innerPath = "\\gameserver";
+        //String path = "C:\\Assembla\\NamiUtils\\resources";
+        String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils1\\packets";
+        //String innerPath = "\\src";
+        String innerPath = "\\gameserver";
         path = path + innerPath;
-        String innerPath2 = "\\src";
-        //String innerPath2 = "\\result";
         File packetSenders = new File(path.toString());
         File packetSenders2 = new File(path.toString());
 
         SendPacketMaker.getInstance().movePacketSendersToNewStandard(packetSenders, "\\result\\EXCEPTIONS\\SENDERS", innerPath);
-        BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath2);
+        BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(packetSenders2, "\\result\\EXCEPTIONS\\BROADCASTERS", innerPath);
     }
 
 
