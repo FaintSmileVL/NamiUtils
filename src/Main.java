@@ -1,4 +1,5 @@
 import makers.BroadcastPacketMaker;
+import makers.MobiusArchivePacketMaker;
 import makers.SendPacketMaker;
 import java.io.File;
 
@@ -24,13 +25,14 @@ public class Main {
         //String path = "C:\\Assembla\\NamiUtils\\resources";
         String path = "C:\\Users\\Admin\\IdeaProjects\\NamiUtils1\\packets";
         //String innerPath = "\\src";
-        String innerPath = "\\gameserver";
+        String innerPath = "\\serverpackets";
         path = path + innerPath;
         String exceptionsPath = path.replace(innerPath, "\\result\\EXCEPTIONS\\exceptions.txt");
 
-        SendPacketMaker.getInstance().movePacketSendersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
-        BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
-        BroadcastPacketMaker.getInstance().movePacketBroadcasters2ToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
+        MobiusArchivePacketMaker.getInstance().moveMobiusPacketsToNewStandards(new File(path.toString()), innerPath);
+        //SendPacketMaker.getInstance().movePacketSendersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
+        //BroadcastPacketMaker.getInstance().movePacketBroadcastersToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
+        //BroadcastPacketMaker.getInstance().movePacketBroadcasters2ToNewStandard(new File(path.toString()), exceptionsPath, innerPath);
     }
 
 
